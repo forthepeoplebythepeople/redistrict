@@ -14,18 +14,18 @@
 
 typedef std::vector<district::community> community_set_type;
 
-bool read_data(const char*, community_set_type&);
+bool read_data(const char*, const char*, community_set_type&);
 void write_data(std::ostream&, const community_set_type&);
 
 int main(int argc, char* argv[]) {
-  if(argc != 2) {
-    std::cerr << "Usage:  make_adjacency <datafile>" << std::endl;
+  if(argc != 3) {
+    std::cerr << "Usage:  make_adjacency <datafile> <state>" << std::endl;
     return(1);
   }
   
   community_set_type communities;
 
-  if(!read_data(argv[1], communities)) {
+  if(!read_data(argv[1], argv[2], communities)) {
     return(2);
   }
 
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
 }
 
 
-bool read_data(const char* filename,
+bool read_data(const char* filename, const char* state,
                community_set_type& communities) {
   std::ifstream in(filename);
 
@@ -71,6 +71,12 @@ bool read_data(const char* filename,
       size_t endIdx = line.find('\t', startIdx);
       
       switch(fieldId) {
+      case 0:   // USPS
+        if(line.compare(startIdx, endIdx - startIdx, state) != 0) {
+          endIdx = std::string::npos;  // Not going to use this state
+        }
+        break;
+        
       case 1:   // GEOID
         communities.push_back(district::community());
         communities.back().id = std::atoll(line.c_str() + startIdx);
@@ -99,8 +105,8 @@ bool read_data(const char* filename,
         
       }
       
-      ++fieldId;
       if(endIdx == std::string::npos) { break; }
+      ++fieldId;
       startIdx = endIdx + 1;
     }
 

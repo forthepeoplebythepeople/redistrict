@@ -12,7 +12,7 @@
 
 #include "structures.hpp"
 
-typedef std::vector<district::community> community_set_type;
+typedef std::vector<redistrict::community> community_set_type;
 
 bool read_data(const char*, const char*, community_set_type&);
 void gen_gilbert_graph(community_set_type&);
@@ -66,7 +66,7 @@ bool read_data(const char* filename, const char* state,
     size_t fieldId = 0;
     size_t startIdx = 0;
     bool complete = false;
-    district::geo_coord::value_type latCache = 0.0;
+    redistrict::geo_coord::value_type latCache = 0.0;
     
     while(startIdx < line.size()) {
       size_t endIdx = line.find('\t', startIdx);
@@ -79,7 +79,7 @@ bool read_data(const char* filename, const char* state,
         break;
         
       case 1:   // GEOID
-        communities.push_back(district::community());
+        communities.push_back(redistrict::community());
         communities.back().id = std::atoll(line.c_str() + startIdx);
         break;
         
@@ -137,7 +137,7 @@ void gen_gilbert_graph(community_set_type& communities) {
       // precisely between the locations.  The summation vector is not
       // normalized.
 
-      district::coord3 nonnormalCenter
+      redistrict::coord3 nonnormalCenter
         = alphaIter->centroid.unit() + betaIter->centroid.unit();
 
       bool gilbertValid = true;  // Assume valid until we prove otherwise
@@ -186,7 +186,7 @@ void write_data(std::ostream& out,
         << cIter->centroid.lat() << '\t'
         << cIter->centroid.lon() << '\t'
         << cIter->district << '\t';
-    for(district::community::adjacency_type::const_iterator aIter
+    for(redistrict::community::adjacency_type::const_iterator aIter
           = cIter->adjacency.begin();
         aIter != cIter->adjacency.end(); ++aIter) {
       if(aIter != cIter->adjacency.begin()) { out << ':'; }

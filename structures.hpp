@@ -10,7 +10,7 @@
 #include <set>
 #include <string>
 
-namespace district {
+namespace redistrict {
 
   struct coord3 {
     typedef double value_type;
@@ -166,6 +166,6 @@ namespace district {
     _latlon2unit();
   }
   
-} // end namespace
+} // end namespace redistrict
 
 #endif

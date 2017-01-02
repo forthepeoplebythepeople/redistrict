@@ -15,6 +15,7 @@
 typedef std::vector<district::community> community_set_type;
 
 bool read_data(const char*, const char*, community_set_type&);
+void gen_gilbert_graph(community_set_type&);
 void write_data(std::ostream&, const community_set_type&);
 
 int main(int argc, char* argv[]) {
@@ -29,8 +30,8 @@ int main(int argc, char* argv[]) {
     return(2);
   }
 
-  // Do something in a moment...
-
+  gen_gilbert_graph(communities);
+  
   write_data(std::cout, communities);
   return(0);
 }
@@ -117,6 +118,60 @@ bool read_data(const char* filename, const char* state,
   }
 
   return(true);
+}
+
+void gen_gilbert_graph(community_set_type& communities) {
+  // This is far from optimal at O(n**3).  I think there is an O(n log n)
+  // algorithm somewhere, but this should suffice for our dataset.
+
+  for(community_set_type::iterator alphaIter = communities.begin();
+      alphaIter != communities.end(); ++alphaIter) {
+
+    std::cerr << "  Looking at:  " << alphaIter->name << std::endl;
+    
+    community_set_type::iterator betaIter = alphaIter;
+    for(++betaIter; betaIter != communities.end(); ++betaIter) {
+
+      // Take the two vectors on the unit surface sphere and construct the
+      // summation vector.  This intersects the surface sphere at a point
+      // precisely between the locations.  The summation vector is not
+      // normalized.
+
+      district::coord3 nonnormalCenter
+        = alphaIter->centroid.unit() + betaIter->centroid.unit();
+
+      bool gilbertValid = true;  // Assume valid until we prove otherwise
+
+      double limitingProd = nonnormalCenter.dot(alphaIter->centroid.unit());
+
+      for(community_set_type::const_iterator gammaIter = communities.begin();
+          gammaIter != communities.end(); ++gammaIter) {
+        if(gammaIter == alphaIter || gammaIter == betaIter) { continue; }
+
+        // The dot product between vectors A and B is equal to mag(A) * mag(B)
+        // * cos(theta), where mag() is the magnitude (length) of the vector,
+        // and theta is the angle between the vectors.  For the following
+        // calculation, the magnitude of every unit vector is 1.0.  Also,
+        // cos(theta) varies between 1.0 (for colinear vectors) and 0.0 (for
+        // antipodal vectors).  Thus, we can determine if this edge is a member
+        // of the gilbert graph by comparing the limiting product against every
+        // other dot product.  If any dot product is larger than the limiting
+        // product, this edge is not a gilbert graph edge, and should be
+        // discarded.
+
+        if(nonnormalCenter.dot(gammaIter->centroid.unit()) > limitingProd) {
+          gilbertValid = false;
+          break;
+        }
+      }
+
+      // Keep the edge
+      if(gilbertValid) {
+        alphaIter->adjacency.insert(&*betaIter);
+        betaIter->adjacency.insert(&*alphaIter);
+      }
+    }
+  }
 }
 
 void write_data(std::ostream& out,

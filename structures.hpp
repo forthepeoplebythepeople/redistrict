@@ -26,6 +26,9 @@ namespace district {
     ~coord3();
 
     coord3& operator=(const coord3&);
+    coord3& operator+=(const coord3&);
+    coord3 operator+(const coord3&) const;
+    value_type dot(const coord3&) const;
     
   }; // end struct coord3
   
@@ -96,6 +99,23 @@ namespace district {
     return(*this);
   }
   
+  inline coord3& coord3::operator+=(const coord3& that) {
+    x += that.x;
+    y += that.y;
+    z += that.z;
+
+    return(*this);
+  }
+
+  inline coord3 coord3::operator+(const coord3& that) const {
+    coord3 reply = *this;
+    return(reply += that);
+  }
+
+  inline coord3::value_type coord3::dot(const coord3& that) const {
+    return(x * that.x + y * that.y + z * that.z);
+  }
+
   
   //
   // Inline definitions for geo_coord methods

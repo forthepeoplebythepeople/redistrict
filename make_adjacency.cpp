@@ -15,7 +15,7 @@
 typedef std::vector<redistrict::community> community_set_type;
 
 bool read_data(const char*, const char*, community_set_type&);
-void gen_gilbert_graph(community_set_type&);
+void gen_gabriel_graph(community_set_type&);
 void write_data(std::ostream&, const community_set_type&);
 
 int main(int argc, char* argv[]) {
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
     return(2);
   }
 
-  gen_gilbert_graph(communities);
+  gen_gabriel_graph(communities);
   
   write_data(std::cout, communities);
   return(0);
@@ -120,7 +120,7 @@ bool read_data(const char* filename, const char* state,
   return(true);
 }
 
-void gen_gilbert_graph(community_set_type& communities) {
+void gen_gabriel_graph(community_set_type& communities) {
   // This is far from optimal at O(n**3).  I think there is an O(n log n)
   // algorithm somewhere, but this should suffice for our dataset.
 
@@ -140,7 +140,7 @@ void gen_gilbert_graph(community_set_type& communities) {
       redistrict::coord3 nonnormalCenter
         = alphaIter->centroid.unit() + betaIter->centroid.unit();
 
-      bool gilbertValid = true;  // Assume valid until we prove otherwise
+      bool gabrielValid = true;  // Assume valid until we prove otherwise
 
       double limitingProd = nonnormalCenter.dot(alphaIter->centroid.unit());
 
@@ -154,19 +154,19 @@ void gen_gilbert_graph(community_set_type& communities) {
         // calculation, the magnitude of every unit vector is 1.0.  Also,
         // cos(theta) varies between 1.0 (for colinear vectors) and 0.0 (for
         // antipodal vectors).  Thus, we can determine if this edge is a member
-        // of the gilbert graph by comparing the limiting product against every
+        // of the gabriel graph by comparing the limiting product against every
         // other dot product.  If any dot product is larger than the limiting
-        // product, this edge is not a gilbert graph edge, and should be
+        // product, this edge is not a gabriel graph edge, and should be
         // discarded.
 
         if(nonnormalCenter.dot(gammaIter->centroid.unit()) > limitingProd) {
-          gilbertValid = false;
+          gabrielValid = false;
           break;
         }
       }
 
       // Keep the edge
-      if(gilbertValid) {
+      if(gabrielValid) {
         alphaIter->adjacency.insert(&*betaIter);
         betaIter->adjacency.insert(&*alphaIter);
       }
